@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ContextGuard: The linter for your AI configuration</title>
+<meta name="description" content="ContextGuard lints CLAUDE.md, .cursorrules, AGENTS.md, and MCP configs, catching oversized instructions, secrets in AI-visible files, and unmeasured token overhead. Pro adds duplicate context, conflicting rule detection, and review workflows.">
+<meta property="og:title" content="ContextGuard: The linter for your AI configuration">
+<meta property="og:description" content="ESLint for the config layer your AI agents read on every request. Lint instruction files, catch secrets, and measure MCP overhead locally.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://bearinblue.github.io/contextguard/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234FC3F7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpolyline points='9 12 11 14 15 10'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #0d1117;
+    --bg-raised: #151c24;
+    --bg-card: #1a232d;
+    --border: #2a3642;
+    --text: #e6edf3;
+    --text-dim: #9bb0c1;
+    --text-faint: #6e8398;
+    --blue: #4fc3f7;
+    --blue-deep: #1976d2;
+    --green: #56d364;
+    --amber: #e3b341;
+    --red: #f85149;
+    --radius: 12px;
+    --max: 1080px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  code, pre, .term { font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  /* ── Nav ─────────────────────────────────────────── */
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 28px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  .brand svg { width: 24px; height: 24px; stroke: var(--blue); }
+  .nav-links { display: flex; gap: 22px; margin-left: auto; align-items: center; }
+  .nav-links a { color: var(--text-dim); font-size: 14px; }
+  .nav-links a:hover { color: var(--text); text-decoration: none; }
+  .btn {
+    display: inline-block; padding: 9px 18px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+    transition: filter .15s, border-color .15s;
+  }
+  .btn:hover { text-decoration: none; filter: brightness(1.12); }
+  .btn-primary { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-deep) 100%); color: #fff; }
+  .btn-ghost { border-color: var(--border); color: var(--text); background: transparent; }
+  .btn-lg { padding: 13px 26px; font-size: 16px; border-radius: 10px; }
+
+  /* ── Hero ────────────────────────────────────────── */
+  .hero { padding: 88px 0 64px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ""; position: absolute; inset: -40% -20% auto;
+    height: 600px; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 0%, rgba(25, 118, 210, 0.22), transparent 65%);
+  }
+  .hero-inner { position: relative; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; align-items: center; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; letter-spacing: .04em;
+    color: var(--blue); background: rgba(79, 195, 247, 0.09);
+    border: 1px solid rgba(79, 195, 247, 0.25);
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(34px, 5vw, 52px); line-height: 1.12; letter-spacing: -0.02em; margin-bottom: 20px; }
+  h1 .grad {
+    background: linear-gradient(120deg, var(--blue) 20%, #90caf9 80%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lede { font-size: 18px; color: var(--text-dim); max-width: 54ch; margin-bottom: 30px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .trust { font-size: 13.5px; color: var(--text-faint); }
+  .trust strong { color: var(--text-dim); font-weight: 600; }
+
+  /* ── Terminal mock ───────────────────────────────── */
+  .term {
+    background: #0a0e13; border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45);
+    font-size: 13px; line-height: 1.75; overflow: hidden;
+  }
+  .term-bar { display: flex; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-raised); }
+  .term-bar span { width: 11px; height: 11px; border-radius: 50%; background: #2e3a46; }
+  .term-bar span:first-child { background: #f85149aa; }
+  .term-bar span:nth-child(2) { background: #e3b341aa; }
+  .term-bar span:nth-child(3) { background: #56d364aa; }
+  .term-body { padding: 18px 20px 20px; white-space: pre-wrap; word-break: break-word; }
+  .t-dim { color: var(--text-faint); }
+  .t-bold { color: var(--text); font-weight: 700; }
+  .t-err { color: var(--red); }
+  .t-warn { color: var(--amber); }
+  .t-ok { color: var(--green); }
+  .t-blue { color: var(--blue); }
+
+  /* ── Sections ────────────────────────────────────── */
+  section { padding: 72px 0; }
+  section.alt { background: var(--bg-raised); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .kicker { color: var(--blue); font-size: 13px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+  h2 { font-size: clamp(26px, 3.4vw, 36px); letter-spacing: -0.015em; line-height: 1.2; margin-bottom: 14px; }
+  .sub { color: var(--text-dim); font-size: 16.5px; max-width: 64ch; margin-bottom: 40px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 48px; }
+  .stat { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; }
+  .stat b { display: block; font-size: 26px; letter-spacing: -0.02em; color: var(--text); }
+  .stat span { font-size: 13.5px; color: var(--text-faint); }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  .card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 26px;
+  }
+  .card .icon { font-size: 22px; margin-bottom: 12px; display: block; }
+  .card h3 { font-size: 17px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .card p { font-size: 14.5px; color: var(--text-dim); }
+  .tag-pro {
+    font-size: 10.5px; font-weight: 700; letter-spacing: .06em; color: #0d1117;
+    background: linear-gradient(135deg, var(--blue), #90caf9);
+    padding: 2px 8px; border-radius: 999px; vertical-align: middle;
+  }
+
+  /* ── Rules table ─────────────────────────────────── */
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-faint); font-size: 12.5px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+  td:first-child { white-space: nowrap; font-weight: 600; }
+  td { color: var(--text-dim); }
+  td:first-child { color: var(--text); }
+  .table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  .tools { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tool {
+    font-size: 13px; color: var(--text-dim); background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 999px; padding: 5px 13px;
+  }
+
+  /* ── CLI block ───────────────────────────────────── */
+  pre.code {
+    background: #0a0e13; border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 24px; font-size: 14px; overflow-x: auto; line-height: 1.7;
+  }
+  pre.code .c { color: var(--text-faint); }
+
+  /* ── Pricing ─────────────────────────────────────── */
+  .pricing { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 880px; margin: 0 auto; }
+  .price-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; }
+  .price-card.featured { border-color: rgba(79, 195, 247, 0.5); box-shadow: 0 0 0 1px rgba(79, 195, 247, 0.25), 0 20px 50px rgba(25, 118, 210, 0.12); position: relative; }
+  .price-card.featured::before {
+    content: "EARLY ACCESS"; position: absolute; top: -11px; left: 28px;
+    font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: #0d1117;
+    background: linear-gradient(135deg, var(--blue), #90caf9); padding: 3px 10px; border-radius: 999px;
+  }
+  .price-card h3 { font-size: 19px; margin-bottom: 4px; }
+  .price { font-size: 38px; font-weight: 700; letter-spacing: -0.02em; margin: 10px 0 2px; }
+  .price small { font-size: 15px; font-weight: 400; color: var(--text-faint); }
+  .price-alt { font-size: 13.5px; color: var(--text-faint); margin-bottom: 22px; }
+  .price-card ul { list-style: none; margin-bottom: 28px; flex: 1; }
+  .price-card li { font-size: 14.5px; color: var(--text-dim); padding: 6px 0 6px 26px; position: relative; }
+  .price-card li::before { content: "✓"; position: absolute; left: 2px; color: var(--green); font-weight: 700; }
+  .price-card li.hl { color: var(--text); }
+  .price-card li.hl::before { color: var(--blue); content: "✦"; }
+  .payback { text-align: center; color: var(--text-faint); font-size: 14px; max-width: 60ch; margin: 32px auto 0; }
+  .payback strong { color: var(--text-dim); }
+
+  /* ── FAQ ─────────────────────────────────────────── */
+  .faq { max-width: 760px; margin: 0 auto; }
+  details {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 22px; margin-bottom: 12px;
+  }
+  summary { cursor: pointer; font-weight: 600; font-size: 15.5px; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::after { content: "+"; color: var(--text-faint); font-size: 20px; font-weight: 400; }
+  details[open] summary::after { content: "–"; }
+  details p { margin-top: 12px; font-size: 14.5px; color: var(--text-dim); }
+  details p + p { margin-top: 8px; }
+
+  /* ── Footer ──────────────────────────────────────── */
+  footer { border-top: 1px solid var(--border); padding: 44px 0 56px; }
+  .foot-inner { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .foot-inner .brand { font-size: 15px; }
+  footer p, footer a { font-size: 13.5px; color: var(--text-faint); }
+  .foot-links { display: flex; gap: 20px; }
+
+  @media (max-width: 880px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 40px; }
+    .grid3, .stats { grid-template-columns: 1fr; }
+    .grid2, .pricing { grid-template-columns: 1fr; }
+    .nav-links a:not(.btn) { display: none; }
+    section { padding: 56px 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="brand" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+      ContextGuard
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#rules">Rules</a>
+      <a href="#cli">CI</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install for VS Code</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <span class="eyebrow">VS Code extension · CLI planned · Local-first</span>
+      <h1>The linter for your <span class="grad">AI&nbsp;configuration</span>.</h1>
+      <p class="lede">
+        Your agents read CLAUDE.md, AGENTS.md, <code>.cursorrules</code>, and MCP configs on
+        <em>every single request</em>, but nothing reviews that layer. ContextGuard lints it
+        like ESLint lints code: deterministic rules for oversized instructions, secrets in
+        AI-visible files, and unmeasured token overhead. Pro adds duplicate-context and
+        contradicting-rule checks, then shows the monthly cost hiding in that context.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install Free for VS Code</a>
+        <a class="btn btn-ghost btn-lg" href="#pricing">See Pro pricing</a>
+      </div>
+      <p class="trust"><strong>Entirely local.</strong> No telemetry, no data collection. Your code never leaves your machine during scans.</p>
+    </div>
+    <div class="term" aria-label="Example ContextGuard lint output">
+      <div class="term-bar"><span></span><span></span><span></span></div>
+      <div class="term-body"><span class="t-bold">ContextGuard: AI configuration check</span>
+
+<span class="t-dim">  Agent tools detected: Claude Code, Cursor, Copilot</span>
+<span class="t-dim">  Instruction overhead: 3 files, ~6,212 tokens</span> <span class="t-blue">≈ $27.95/month</span>
+
+<span class="t-err">  ✖</span> <span class="t-bold">CLAUDE.md:41</span>  "Use tabs for indentation" conflicts with
+    "Always indent with spaces" in .cursorrules <span class="t-dim">[conflicting-instruction]</span>
+<span class="t-err">  ✖</span> <span class="t-bold">src/config.ts:8</span>  OpenAI-style API key appears in
+    file content <span class="t-dim">[secret-content]</span>
+<span class="t-warn">  ⚠</span> <span class="t-bold">CLAUDE.md:12</span>  "Write tests for new code" also appears
+    in AGENTS.md <span class="t-dim">[duplicate-instruction]</span>
+<span class="t-warn">  ⚠</span> <span class="t-bold">.mcp.json</span>  runtime tool schemas not counted;
+    measure real overhead <span class="t-dim">[mcp-unknown]</span>
+
+<span class="t-err">2 errors</span>, <span class="t-warn">2 warnings</span> <span class="t-dim">· every warning is a rule, not a guess</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <p class="kicker">The invisible problem</p>
+    <h2>Bad AI configuration stays invisible until you put a number on it.</h2>
+    <p class="sub">
+      When your agent ignores an instruction, you blame the model, not the 6,000-token
+      CLAUDE.md where your one important rule is buried under contradictions and a duplicated
+      style guide. That layer is code: it changes model behavior on every request, and it drifts.
+    </p>
+    <div class="grid3">
+      <div class="card">
+        <span class="icon">💸</span>
+        <h3>It taxes every request</h3>
+        <p>Instruction files and MCP schemas are injected into every session. A 4k-token CLAUDE.md isn't free. ContextGuard shows the token count and monthly cost estimate right in your status bar.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🔀</span>
+        <h3>It drifts and contradicts</h3>
+        <p>Once a team uses more than one tool, CLAUDE.md and <code>.cursorrules</code> start disagreeing. "Use tabs" in one file, "use spaces" in another, and the agent gets both. Which wins is luck.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🔑</span>
+        <h3>It leaks</h3>
+        <p>Agents happily read files git never sees. A gitignored <code>.env</code> is still AI-visible, and so is the API key someone pasted into a config "just for a second."</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>21 tools</b><span>agent conventions detected across Claude Code, Cursor, Copilot, Cline, Windsurf, Aider, Zed, and more</span></div>
+      <div class="stat"><b>100% deterministic</b><span>every warning is a rule with a location, like ESLint. No AI needed to lint your AI</span></div>
+      <div class="stat"><b>0 telemetry</b><span>scans run entirely on your machine; Pro license validation is the only ContextGuard service call</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="features">
+  <div class="wrap">
+    <p class="kicker">What it does</p>
+    <h2>Lint. Fix. Guard. Measure. Bundle.</h2>
+    <p class="sub">Free proves the problem. Pro is the planned fix-it layer.</p>
+    <div class="grid3">
+      <div class="card">
+        <span class="icon">🔍</span>
+        <h3>Lint</h3>
+        <p>Scan your active file, open tabs, or workspace. Free flags oversized instruction files, secrets, MCP configs, generated noise, and token bloat with file, line, and Jump&nbsp;To. Pro adds duplicate Markdown context, contradicting AI rules, and git diff review scans.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🛠️</span>
+        <h3>Fix <span class="tag-pro">PRO</span></h3>
+        <p><strong>Optimize Instruction File</strong> turns warnings into edits: dedupe rules within and across files, pick-the-winner conflict resolution, and a receipt like <em>"4.1k → 1.8k tokens, ≈ −$2.10/month."</em></p>
+      </div>
+      <div class="card">
+        <span class="icon">🛡️</span>
+        <h3>Guard <span class="tag-pro">PRO</span></h3>
+        <p><strong>Live Secret Guard</strong> checks every save of an AI-visible file. The moment a key, token, JWT, or DB URL lands in source, you get a Problems entry with the exact line so you can fix it before any agent reads it.</p>
+      </div>
+      <div class="card">
+        <span class="icon">📏</span>
+        <h3>Measure <span class="tag-pro">PRO</span></h3>
+        <p><strong>Measure MCP Overhead</strong> launches your stdio MCP servers (with consent), calls <code>tools/list</code>, and reports the real schema tokens each one injects per session. No other tool shows that number.</p>
+      </div>
+      <div class="card">
+        <span class="icon">📦</span>
+        <h3>Bundle</h3>
+        <p>Package clean, paste-ready context for Claude, ChatGPT, or any web AI, with token counts per file, one-click noise removal, automatic secret redaction (Pro), and PR-review packs built from your git diff (Pro).</p>
+      </div>
+      <div class="card">
+        <span class="icon">⚙️</span>
+        <h3>Gate in CI</h3>
+        <p>The same deterministic rules, headless. The CLI fails the build on conflicting instruction rules and AI-visible secrets, so config drift becomes a red build instead of a degraded agent.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="rules">
+  <div class="wrap">
+    <p class="kicker">The rules</p>
+    <h2>Every warning is a rule, not a guess.</h2>
+    <p class="sub">Deterministic, explainable, and consistent across the panel, save-time checks, and CI.</p>
+    <div class="table-card">
+      <table>
+        <tr><th>Rule</th><th>What it catches</th></tr>
+        <tr><td>Large / Huge Instruction</td><td>AI instruction files over 1.5k–6k tokens that tax every request</td></tr>
+        <tr><td>Duplicate Context / Rule <span class="tag-pro">PRO</span></td><td>Repeated Markdown context or the same rule repeated across CLAUDE.md, .cursorrules, AGENTS.md, …</td></tr>
+        <tr><td>Conflicting Rule <span class="tag-pro">PRO</span></td><td>"Use tabs" in one file and "use spaces" in another, with Jump To navigation</td></tr>
+        <tr><td>Secret Content</td><td>API keys, tokens, JWTs, private keys, and credentialed DB URLs in AI-visible files</td></tr>
+        <tr><td>Sensitive Path</td><td><code>.env</code>, <code>*.pem</code>, keystores, Terraform state, including safely gitignored files</td></tr>
+        <tr><td>MCP Unknown</td><td>MCP configs whose runtime schema overhead isn't counted anywhere</td></tr>
+        <tr><td>Large / Huge File</td><td>Files over 3k / 8k tokens that would dominate a request</td></tr>
+        <tr><td>Generated / Noisy</td><td><code>dist/</code>, lockfiles, logs, and snapshots that add high-token, low-signal context</td></tr>
+      </table>
+    </div>
+    <div class="tools">
+      <span class="tool">Claude Code</span><span class="tool">Cursor</span><span class="tool">GitHub Copilot</span>
+      <span class="tool">AGENTS.md</span><span class="tool">Cline</span><span class="tool">Windsurf</span>
+      <span class="tool">Roo Code</span><span class="tool">Gemini</span><span class="tool">Codex CLI</span>
+      <span class="tool">Aider</span><span class="tool">Zed</span><span class="tool">Continue</span>
+      <span class="tool">JetBrains Junie</span><span class="tool">Amazon Q</span><span class="tool">Kilo Code</span>
+      <span class="tool">Goose</span><span class="tool">OpenHands</span><span class="tool">Amp</span>
+      <span class="tool">Augment Code</span><span class="tool">Firebase Studio</span><span class="tool">Trae</span>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="cli">
+  <div class="wrap">
+    <p class="kicker">For teams</p>
+    <h2>Gate your AI configuration in CI.</h2>
+    <p class="sub">The CLI is implemented in this repo and planned for npm. Once published, one CI command catches instruction size issues, duplicate and conflicting instruction rules, MCP detection, and secrets in AI-visible files.</p>
+    <pre class="code"><span class="c"># after the npm package is published</span>
+<span class="c"># .github/workflows/ci.yml, or any CI</span>
+npx contextguard-cli check --fail-on error
+
+<span class="c"># machine-readable output for dashboards</span>
+npx contextguard-cli check --json</pre>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <p class="kicker">Pricing</p>
+    <h2>Free proves it. Pro fixes it.</h2>
+    <p class="sub">No account needed for Free. Pro checkout is not live yet; planned early-access pricing is below.</p>
+    <div class="pricing">
+      <div class="price-card">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <div class="price-alt">forever · no account</div>
+        <ul>
+          <li>Core lint rules: size, secrets, sensitive paths, generated noise, MCP detection</li>
+          <li>Auto-injected token baseline + monthly cost in the status bar</li>
+          <li>Context bundles for any web AI, with budget tracking &amp; noise removal</li>
+          <li>CLI for CI (npm package planned)</li>
+          <li>Workspace scans up to 50 files (secrets always scanned, even past the cap)</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install Free</a>
+      </div>
+      <div class="price-card featured">
+        <h3>Pro</h3>
+        <div class="price">$5<small>/month</small></div>
+        <div class="price-alt">or $39/year, early-access pricing</div>
+        <ul>
+          <li class="hl"><strong>Live Secret Guard</strong>: secret check on every save, with file &amp; line</li>
+          <li class="hl"><strong>Secret redaction</strong>: bundles auto-scrub keys, tokens &amp; JWTs</li>
+          <li class="hl"><strong>Optimize Instruction File</strong>: apply dedupe &amp; conflict fixes, see the $ saved</li>
+          <li class="hl"><strong>Measure MCP Overhead</strong>: real tool-schema tokens per server</li>
+          <li>Duplicate Markdown context &amp; conflicting AI rule detection</li>
+          <li>PR Review &amp; Branch Diff Review: paste-ready review packs from git</li>
+          <li>Workspace Security Audit with file &amp; line detail</li>
+          <li>Context history &amp; 30-day trends · 1,500-file scans</li>
+        </ul>
+        <!-- At checkout launch: restore href="https://contextguard.dev/upgrade" and label "Get ContextGuard Pro" -->
+        <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Pro on sale soon. Install Free today</a>
+      </div>
+    </div>
+    <p class="payback">
+      If ContextGuard trims even <strong>500 tokens</strong> off your auto-injected baseline, it pays for
+      itself in API costs. The first secret it stops from reaching a chat window is worth more
+      than the planned subscription.
+    </p>
+  </div>
+</section>
+
+<section class="alt" id="faq">
+  <div class="wrap">
+    <p class="kicker">FAQ</p>
+    <h2 style="margin-bottom:36px">Questions, answered.</h2>
+    <div class="faq">
+      <details>
+        <summary>Does my code leave my machine?</summary>
+        <p>No. Every scan, lint, and bundle runs locally. ContextGuard does not send code or scan contents to a service. The only planned ContextGuard service call is validating a Pro license key against our licensing provider when Pro checkout opens. Measure MCP Overhead launches workspace-configured MCP commands only after consent; those servers may make their own normal network calls. There is no telemetry or data collection, and this website has no analytics or cookies either.</p>
+      </details>
+      <details>
+        <summary>Which AI tools does it understand?</summary>
+        <p>ContextGuard maintains a canonical registry of agent configuration conventions: 21 tools and counting, including Claude Code (CLAUDE.md, .mcp.json), the AGENTS.md standard, Cursor, GitHub Copilot, Cline, Windsurf, Roo Code, Gemini, Codex CLI, Aider, Zed, Continue, JetBrains Junie, Amazon Q, Goose, Amp, Augment Code, and more. When a tool ships a new convention, it gets a registry entry and every surface picks it up. Missing one? That's a bug; tell us.</p>
+      </details>
+      <details>
+        <summary>Why does it lint files that are gitignored?</summary>
+        <p>Because your agent reads them anyway. <code>.gitignore</code> protects files from version control, not from AI tools. A gitignored <code>.env</code> is still injected into context by agents that read your workspace. That gap is exactly what ContextGuard audits.</p>
+      </details>
+      <details>
+        <summary>Are the "$ per month" numbers real?</summary>
+        <p>They're computed from your actual token counts under stated, conservative assumptions: Sonnet-class input pricing ($3/M tokens) at 50 requests/day. Both are settings, so point them at your real usage and model pricing and the estimates become your numbers.</p>
+      </details>
+      <details>
+        <summary>How does Pro licensing work?</summary>
+        <p>Pro checkout is not live yet, so there are no license keys to buy or activate today. The planned early-access license is one key for up to 5 machines. Once checkout opens, activate with <em>ContextGuard: Activate Pro License</em> from the Command Palette.</p>
+      </details>
+      <details>
+        <summary>What's the refund policy?</summary>
+        <p>No Pro purchases are available today. When Pro sales open, the intended policy is a full refund within 14 days of purchase.</p>
+      </details>
+      <details>
+        <summary>Does it work offline?</summary>
+        <p>Yes. Everything except license validation is offline by design, and Pro keeps working through a 7-day offline grace window between validations.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="wrap foot-inner">
+    <div>
+      <a class="brand" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+        ContextGuard
+      </a>
+      <p style="margin-top:10px">© 2026 Bear in Blue Studio. All rights reserved.</p>
+    </div>
+    <div class="foot-links">
+      <a href="#faq">Privacy</a>
+      <a href="mailto:bearinblue.studio@outlook.com">bearinblue.studio@outlook.com</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
