@@ -318,7 +318,7 @@
       <div class="card">
         <span class="icon">🛡️</span>
         <h3>Guard <span class="tag-pro">PRO</span></h3>
-        <p><strong>Live Secret Guard</strong> checks every save of an AI-visible file. The moment a key, token, JWT, or DB URL lands in source, you get a Problems entry with the exact line so you can fix it before any agent reads it.</p>
+        <p>Free already flags secrets in instruction files (CLAUDE.md, .cursorrules, …) on every save. <strong>Live Secret Guard</strong> extends that to <em>every other</em> AI-visible source and config file: the moment a key, token, JWT, or DB URL lands in one, you get a status-bar alert and a Problems entry with the exact line, before any agent reads it.</p>
       </div>
       <div class="card">
         <span class="icon">📏</span>
@@ -396,6 +396,8 @@ npx contextguard-cli check --json</pre>
         <ul>
           <li>Core lint rules: size, secrets, sensitive paths, generated noise, MCP detection</li>
           <li>Auto-injected token baseline + monthly cost in the status bar</li>
+          <li>On-save secret scan of instruction files + Workspace Security Audit, with file &amp; line</li>
+          <li>Secret redaction in every exported bundle: keys, tokens &amp; JWTs auto-scrubbed</li>
           <li>Context bundles for any web AI, with budget tracking &amp; noise removal</li>
           <li>CLI for CI (npm package planned)</li>
           <li>Workspace scans up to 50 files (secrets always scanned, even past the cap)</li>
@@ -407,13 +409,11 @@ npx contextguard-cli check --json</pre>
         <div class="price">$5<small>/month</small></div>
         <div class="price-alt">or $39/year, early-access pricing</div>
         <ul>
-          <li class="hl"><strong>Live Secret Guard</strong>: secret check on every save, with file &amp; line</li>
-          <li class="hl"><strong>Secret redaction</strong>: bundles auto-scrub keys, tokens &amp; JWTs</li>
+          <li class="hl"><strong>Live Secret Guard</strong>: on-save secret scan extended to all other AI-visible source/config files, with a status-bar alert</li>
           <li class="hl"><strong>Optimize Instruction File</strong>: apply dedupe &amp; conflict fixes, see the $ saved</li>
           <li class="hl"><strong>Measure MCP Overhead</strong>: real tool-schema tokens per server</li>
           <li>Duplicate Markdown context &amp; conflicting AI rule detection</li>
-          <li>PR Review &amp; Branch Diff Review: paste-ready review packs from git</li>
-          <li>Workspace Security Audit with file &amp; line detail</li>
+          <li>PR Review &amp; Branch Diff Review: paste-ready review packs from git (redacted)</li>
           <li>Context history &amp; 30-day trends · 1,500-file scans</li>
         </ul>
         <!-- At checkout launch: restore href="https://contextguard.dev/upgrade" and label "Get ContextGuard Pro" -->
@@ -447,7 +447,7 @@ npx contextguard-cli check --json</pre>
       </details>
       <details>
         <summary>Are the "$ per month" numbers real?</summary>
-        <p>They're computed from your actual token counts under stated, conservative assumptions: Sonnet-class input pricing ($3/M tokens) at 50 requests/day. Both are settings, so point them at your real usage and model pricing and the estimates become your numbers.</p>
+        <p>They're computed from your actual token counts under stated, conservative assumptions: Sonnet-class input pricing ($3/M tokens) at 50 requests/day. Both are settings, so point them at your real usage and model pricing and the estimates become your numbers. The token count is the part that doesn't move; the dollar figure sits on top of it. Prompt caching moves the dollars in both directions — lower when caches hit, higher when they miss and expire — but either way that configuration occupies your context window on every request.</p>
       </details>
       <details>
         <summary>How does Pro licensing work?</summary>
