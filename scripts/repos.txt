@@ -28,7 +28,6 @@ danny-avila/LibreChat
 open-webui/open-webui
 comfyanonymous/ComfyUI
 mckaywrigley/chatbot-ui
-sourcegraph/cody
 facebook/react
 vercel/next.js
 vuejs/core
