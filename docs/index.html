@@ -168,13 +168,6 @@
     border: 1px solid var(--border); border-radius: 999px; padding: 5px 13px;
   }
 
-  /* ── CLI block ───────────────────────────────────── */
-  pre.code {
-    background: #0a0e13; border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 20px 24px; font-size: 14px; overflow-x: auto; line-height: 1.7;
-  }
-  pre.code .c { color: var(--text-faint); }
-
   /* ── Pricing ─────────────────────────────────────── */
   .pricing { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; max-width: 880px; margin: 0 auto; }
   .price-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 32px; display: flex; flex-direction: column; }
@@ -235,7 +228,6 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#rules">Rules</a>
-      <a href="#cli">CI</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
       <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install for VS Code</a>
@@ -246,7 +238,7 @@
 <header class="hero">
   <div class="wrap hero-inner">
     <div>
-      <span class="eyebrow">VS Code extension + bundled CLI · Local-first</span>
+      <span class="eyebrow">VS Code extension · Local-first</span>
       <h1>The linter for your <span class="grad">AI&nbsp;configuration</span>.</h1>
       <p class="lede">
         Your agents each read their own config files — CLAUDE.md, AGENTS.md,
@@ -372,11 +364,6 @@
         <h3>Bundle</h3>
         <p>Package clean, paste-ready context for Claude, ChatGPT, or any web AI, with token counts per file, one-click noise removal, automatic secret redaction (free), and PR-review packs built from your git diff (Pro).</p>
       </div>
-      <div class="card">
-        <span class="icon">⚙️</span>
-        <h3>Gate in CI</h3>
-        <p>The same deterministic rules, headless. The CLI fails the build on conflicting instruction rules and AI-visible secrets, so config drift becomes a red build instead of a degraded agent.</p>
-      </div>
     </div>
   </div>
 </section>
@@ -385,7 +372,7 @@
   <div class="wrap">
     <p class="kicker">The rules</p>
     <h2>Every warning is a rule, not a guess.</h2>
-    <p class="sub">Deterministic, explainable, and consistent across the panel, save-time checks, and CI.</p>
+    <p class="sub">Deterministic, explainable, and consistent across the panel and save-time checks.</p>
     <div class="table-card">
       <table>
         <tr><th>Rule</th><th>What it catches</th></tr>
@@ -411,19 +398,6 @@
   </div>
 </section>
 
-<section class="alt" id="cli">
-  <div class="wrap">
-    <p class="kicker">For teams</p>
-    <h2>Gate your AI configuration in CI.</h2>
-    <p class="sub">The same deterministic engine, headless. The CLI ships inside the extension today (npm package coming). One command gates instruction size, token budgets (<code>--max-tokens</code>), secret findings, and MCP detection — with JSON output for dashboards, and honest exit codes for CI.</p>
-    <pre class="code"><span class="c"># .github/workflows/ci.yml, or any CI (npm package coming)</span>
-npx contextguard-cli check --fail-on error --max-tokens 8000
-
-<span class="c"># machine-readable output for dashboards</span>
-npx contextguard-cli check --json</pre>
-  </div>
-</section>
-
 <section id="pricing">
   <div class="wrap">
     <p class="kicker">Pricing</p>
@@ -440,7 +414,6 @@ npx contextguard-cli check --json</pre>
           <li>On-save secret scan of instruction files + Workspace Security Audit, with file &amp; line</li>
           <li>Secret redaction in every exported bundle: keys, tokens &amp; JWTs auto-scrubbed</li>
           <li>Context bundles for any web AI, with budget tracking &amp; noise removal</li>
-          <li>Bundled CLI for CI (npm package coming)</li>
           <li>Workspace scans up to 50 files (secrets always scanned, even past the cap)</li>
         </ul>
         <a class="btn btn-ghost" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install Free</a>
