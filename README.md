@@ -165,7 +165,7 @@ Pick what matters, cut what doesn't, and export a paste-ready Markdown bundle fo
 
 When a scan hits the file cap, sensitive-looking files (`.env`, keys, keystores, Terraform state) and files with detected secret content are prioritized first.
 
-Pro checkout isn't open yet. Planned early-access pricing is **$5/month or $39/year**; once it opens, activate with `ContextGuard: Activate Pro License` from the Command Palette.
+Early-access pricing is **$5/month or $39/year** — [get ContextGuard Pro](https://bearinblue.lemonsqueezy.com/checkout/buy/999f3f5b-f5b7-4d39-a7bd-ac5433d0be7d) (details on the [website](https://bearinblue.github.io/contextguard/#pricing)). After purchase, activate with `ContextGuard: Activate Pro License` from the Command Palette.
 
 ---
 
@@ -203,7 +203,7 @@ Workspace scans also respect your `.gitignore`, except for sensitive-looking fil
 
 ## Support
 
-ContextGuard's free tier stands on its own — token baseline, lint rules, secret detection with exact locations, bundle redaction, and clean export, all local. If it's saved you tokens or caught a secret, **Pro funds the work** (and unlocks PR review, Live Secret Guard, Optimize, and more). Checkout isn't open yet; early-access pricing is planned at **$5/month or $39/year**.
+ContextGuard's free tier stands on its own — token baseline, lint rules, secret detection with exact locations, bundle redaction, and clean export, all local. If it's saved you tokens or caught a secret, **[Pro funds the work](https://bearinblue.lemonsqueezy.com/checkout/buy/999f3f5b-f5b7-4d39-a7bd-ac5433d0be7d)** (and unlocks PR review, Live Secret Guard, Optimize, and more). Early-access pricing is **$5/month or $39/year**.
 
 ---
 
