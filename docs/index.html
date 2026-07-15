@@ -5,10 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ContextGuard: The linter for your AI configuration</title>
 <meta name="description" content="ContextGuard lints CLAUDE.md, .cursorrules, AGENTS.md, and MCP configs, catching oversized instructions, secrets in AI-visible files, and unmeasured token overhead. Pro adds duplicate context, conflicting rule detection, and review workflows.">
+<link rel="canonical" href="https://bearinblue.github.io/contextguard/">
 <meta property="og:title" content="ContextGuard: The linter for your AI configuration">
-<meta property="og:description" content="ESLint for the config layer your AI agents read on every request. Lint instruction files, catch secrets, and measure MCP overhead locally.">
+<meta property="og:description" content="ESLint for the config layer your AI agents may read on every request. Lint instruction files, catch secrets, and measure MCP overhead locally.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://bearinblue.github.io/contextguard/">
+<meta property="og:site_name" content="ContextGuard">
+<meta property="og:image" content="https://bearinblue.github.io/contextguard/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="ContextGuard: the linter for your AI configuration. 72% of 100 popular repos ship AI instruction files; median 2,269 always-loaded tokens.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ContextGuard: The linter for your AI configuration">
+<meta name="twitter:description" content="ESLint for the config layer your AI agents may read on every request. Lint instruction files, catch secrets, and measure MCP overhead locally.">
+<meta name="twitter:image" content="https://bearinblue.github.io/contextguard/og-cover.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234FC3F7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3Cpolyline points='9 12 11 14 15 10'/%3E%3C/svg%3E">
 <style>
   :root {
@@ -96,6 +106,13 @@
     box-shadow: 0 24px 60px rgba(0,0,0,.45);
     font-size: 13px; line-height: 1.75; overflow: hidden;
   }
+
+  .demo {
+    background: #0a0e13; border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(0,0,0,.45); overflow: hidden;
+  }
+  .demo video { display: block; width: 100%; height: auto; background: #0a0e13; }
+  .demo-note { color: var(--text-faint); font-size: 13.5px; margin-top: 14px; }
   .term-bar { display: flex; gap: 7px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-raised); }
   .term-bar span { width: 11px; height: 11px; border-radius: 50%; background: #2e3a46; }
   .term-bar span:first-child { background: #f85149aa; }
@@ -229,11 +246,11 @@
 <header class="hero">
   <div class="wrap hero-inner">
     <div>
-      <span class="eyebrow">VS Code extension · CLI planned · Local-first</span>
+      <span class="eyebrow">VS Code extension + bundled CLI · Local-first</span>
       <h1>The linter for your <span class="grad">AI&nbsp;configuration</span>.</h1>
       <p class="lede">
-        Your agents read CLAUDE.md, AGENTS.md, <code>.cursorrules</code>, and MCP configs on
-        <em>every single request</em>, but nothing reviews that layer. ContextGuard lints it
+        Your agents each read their own config files — CLAUDE.md, AGENTS.md,
+        <code>.cursorrules</code>, Copilot instructions, MCP configs — but nothing reviews that layer. ContextGuard lints it
         like ESLint lints code: deterministic rules for oversized instructions, secrets in
         AI-visible files, and unmeasured token overhead. Pro adds duplicate-context and
         contradicting-rule checks, then shows the monthly cost hiding in that context.
@@ -246,7 +263,7 @@
     </div>
     <div class="term" aria-label="Example ContextGuard lint output">
       <div class="term-bar"><span></span><span></span><span></span></div>
-      <div class="term-body"><span class="t-bold">ContextGuard: AI configuration check</span>
+      <div class="term-body"><span class="t-bold">ContextGuard: AI context audit</span>
 
 <span class="t-dim">  Agent tools detected: Claude Code, Cursor, Copilot</span>
 <span class="t-dim">  Instruction overhead: 3 files, ~6,212 tokens</span> <span class="t-blue">≈ $27.95/month</span>
@@ -258,12 +275,36 @@
 <span class="t-warn">  ⚠</span> <span class="t-bold">CLAUDE.md:12</span>  "Write tests for new code" also appears
     in AGENTS.md <span class="t-dim">[duplicate-instruction]</span>
 <span class="t-warn">  ⚠</span> <span class="t-bold">.mcp.json</span>  runtime tool schemas not counted;
-    measure real overhead <span class="t-dim">[mcp-unknown]</span>
+    measure real overhead <span class="t-dim">[mcp-runtime-context]</span>
 
 <span class="t-err">2 errors</span>, <span class="t-warn">2 warnings</span> <span class="t-dim">· every warning is a rule, not a guess</span></div>
     </div>
   </div>
 </header>
+
+<section class="alt" id="demo">
+  <div class="wrap">
+    <p class="kicker">See it work</p>
+    <h2>Sixteen seconds, one real repository.</h2>
+    <p class="sub">
+      A workspace scan of the public Cline repo: the always-on instruction files found across
+      every tool that loads them, then the combined configuration footprint and its modeled
+      monthly cost, sitting in the status bar where you can't forget about it.
+    </p>
+    <div class="demo">
+      <video controls preload="none" playsinline poster="contextguard-demo-poster.jpg"
+             width="1920" height="1080"
+             aria-label="ContextGuard scanning the public Cline repository">
+        <source src="contextguard-demo.mp4" type="video/mp4">
+        <a href="contextguard-demo.mp4">Download the demo video</a> (MP4, 16 seconds).
+      </video>
+    </div>
+    <p class="demo-note">
+      Recorded on the public Cline repository. ContextGuard is unaffiliated with Cline. Cost
+      figures use the default assumptions: $3 per million input tokens at 50 requests/day.
+    </p>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
@@ -278,7 +319,7 @@
       <div class="card">
         <span class="icon">💸</span>
         <h3>It taxes every request</h3>
-        <p>Instruction files and MCP schemas are injected into every session. A 4k-token CLAUDE.md isn't free. ContextGuard shows the token count and monthly cost estimate right in your status bar.</p>
+        <p>Instruction files and MCP schemas can ride along with every session for the tool that loads them. A 4k-token CLAUDE.md isn't free. ContextGuard shows the combined instruction footprint in your status bar; hover it for the monthly cost estimate.</p>
       </div>
       <div class="card">
         <span class="icon">🔀</span>
@@ -292,7 +333,7 @@
       </div>
     </div>
     <div class="stats">
-      <div class="stat"><b>21 tools</b><span>agent conventions detected across Claude Code, Cursor, Copilot, Cline, Windsurf, Aider, Zed, and more</span></div>
+      <div class="stat"><b>22 tools</b><span>config conventions detected across Claude Code, Cursor, Copilot, Cline, Windsurf, Aider, Zed, and more</span></div>
       <div class="stat"><b>100% deterministic</b><span>every warning is a rule with a location, like ESLint. No AI needed to lint your AI</span></div>
       <div class="stat"><b>0 telemetry</b><span>scans run entirely on your machine; Pro license validation is the only ContextGuard service call</span></div>
     </div>
@@ -303,7 +344,7 @@
   <div class="wrap">
     <p class="kicker">What it does</p>
     <h2>Lint. Fix. Guard. Measure. Bundle.</h2>
-    <p class="sub">Free proves the problem. Pro is the planned fix-it layer.</p>
+    <p class="sub">Free proves the problem. Pro adds the fix-it and continuous-guard layer.</p>
     <div class="grid3">
       <div class="card">
         <span class="icon">🔍</span>
@@ -328,7 +369,7 @@
       <div class="card">
         <span class="icon">📦</span>
         <h3>Bundle</h3>
-        <p>Package clean, paste-ready context for Claude, ChatGPT, or any web AI, with token counts per file, one-click noise removal, automatic secret redaction (Pro), and PR-review packs built from your git diff (Pro).</p>
+        <p>Package clean, paste-ready context for Claude, ChatGPT, or any web AI, with token counts per file, one-click noise removal, automatic secret redaction (free), and PR-review packs built from your git diff (Pro).</p>
       </div>
       <div class="card">
         <span class="icon">⚙️</span>
@@ -373,10 +414,9 @@
   <div class="wrap">
     <p class="kicker">For teams</p>
     <h2>Gate your AI configuration in CI.</h2>
-    <p class="sub">The CLI is implemented in this repo and planned for npm. Once published, one CI command catches instruction size issues, duplicate and conflicting instruction rules, MCP detection, and secrets in AI-visible files.</p>
-    <pre class="code"><span class="c"># after the npm package is published</span>
-<span class="c"># .github/workflows/ci.yml, or any CI</span>
-npx contextguard-cli check --fail-on error
+    <p class="sub">The same deterministic engine, headless. The CLI ships inside the extension today (npm package coming). One command gates instruction size, token budgets (<code>--max-tokens</code>), secret findings, and MCP detection — with JSON output for dashboards, and honest exit codes for CI.</p>
+    <pre class="code"><span class="c"># .github/workflows/ci.yml, or any CI (npm package coming)</span>
+npx contextguard-cli check --fail-on error --max-tokens 8000
 
 <span class="c"># machine-readable output for dashboards</span>
 npx contextguard-cli check --json</pre>
@@ -387,7 +427,7 @@ npx contextguard-cli check --json</pre>
   <div class="wrap">
     <p class="kicker">Pricing</p>
     <h2>Free proves it. Pro fixes it.</h2>
-    <p class="sub">No account needed for Free. Pro checkout is not live yet; planned early-access pricing is below.</p>
+    <p class="sub">No account needed for Free. Early-access Pro is available below.</p>
     <div class="pricing">
       <div class="price-card">
         <h3>Free</h3>
@@ -395,11 +435,11 @@ npx contextguard-cli check --json</pre>
         <div class="price-alt">forever · no account</div>
         <ul>
           <li>Core lint rules: size, secrets, sensitive paths, generated noise, MCP detection</li>
-          <li>Auto-injected token baseline + monthly cost in the status bar</li>
+          <li>Combined configuration footprint + monthly cost in the status-bar tooltip</li>
           <li>On-save secret scan of instruction files + Workspace Security Audit, with file &amp; line</li>
           <li>Secret redaction in every exported bundle: keys, tokens &amp; JWTs auto-scrubbed</li>
           <li>Context bundles for any web AI, with budget tracking &amp; noise removal</li>
-          <li>CLI for CI (npm package planned)</li>
+          <li>Bundled CLI for CI (npm package coming)</li>
           <li>Workspace scans up to 50 files (secrets always scanned, even past the cap)</li>
         </ul>
         <a class="btn btn-ghost" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install Free</a>
@@ -416,14 +456,13 @@ npx contextguard-cli check --json</pre>
           <li>PR Review &amp; Branch Diff Review: paste-ready review packs from git (redacted)</li>
           <li>Context history &amp; 30-day trends · 1,500-file scans</li>
         </ul>
-        <!-- At checkout launch: restore href="https://contextguard.dev/upgrade" and label "Get ContextGuard Pro" -->
-        <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Pro on sale soon. Install Free today</a>
+        <a class="btn btn-primary" href="https://bearinblue.lemonsqueezy.com/checkout/buy/999f3f5b-f5b7-4d39-a7bd-ac5433d0be7d">Get ContextGuard Pro</a>
       </div>
     </div>
     <p class="payback">
-      If ContextGuard trims even <strong>500 tokens</strong> off your auto-injected baseline, it pays for
+      If ContextGuard trims even <strong>500 tokens</strong> off your combined configuration footprint, it pays for
       itself in API costs. The first secret it stops from reaching a chat window is worth more
-      than the planned subscription.
+      than the subscription.
     </p>
   </div>
 </section>
@@ -435,27 +474,27 @@ npx contextguard-cli check --json</pre>
     <div class="faq">
       <details>
         <summary>Does my code leave my machine?</summary>
-        <p>No. Every scan, lint, and bundle runs locally. ContextGuard does not send code or scan contents to a service. The only planned ContextGuard service call is validating a Pro license key against our licensing provider when Pro checkout opens. Measure MCP Overhead launches workspace-configured MCP commands only after consent; those servers may make their own normal network calls. There is no telemetry or data collection, and this website has no analytics or cookies either.</p>
+        <p>No. Every scan, lint, and bundle runs locally. ContextGuard does not send code or scan contents to a service. The only ContextGuard service call is activating, validating, or deactivating a Pro license through our licensing provider. Measure MCP Overhead launches workspace-configured MCP commands only after consent; those servers may make their own normal network calls. There is no telemetry or data collection, and this website has no analytics or cookies either.</p>
       </details>
       <details>
         <summary>Which AI tools does it understand?</summary>
-        <p>ContextGuard maintains a canonical registry of agent configuration conventions: 21 tools and counting, including Claude Code (CLAUDE.md, .mcp.json), the AGENTS.md standard, Cursor, GitHub Copilot, Cline, Windsurf, Roo Code, Gemini, Codex CLI, Aider, Zed, Continue, JetBrains Junie, Amazon Q, Goose, Amp, Augment Code, and more. When a tool ships a new convention, it gets a registry entry and every surface picks it up. Missing one? That's a bug; tell us.</p>
+        <p>ContextGuard maintains a canonical registry of agent configuration conventions: 22 tools and counting, including Claude Code (CLAUDE.md, .mcp.json), the AGENTS.md standard, Cursor, GitHub Copilot, Cline, Windsurf, Roo Code, Gemini, Codex CLI, Aider, Zed, Continue, JetBrains Junie, Amazon Q, Goose, Amp, Augment Code, and more. When a tool ships a new convention, it gets a registry entry and every surface picks it up. Missing one? That's a bug; tell us.</p>
       </details>
       <details>
         <summary>Why does it lint files that are gitignored?</summary>
-        <p>Because your agent reads them anyway. <code>.gitignore</code> protects files from version control, not from AI tools. A gitignored <code>.env</code> is still injected into context by agents that read your workspace. That gap is exactly what ContextGuard audits.</p>
+        <p>Because <code>.gitignore</code> protects files from version control, not from AI tools. A gitignored <code>.env</code> can still be read by workspace-aware agents or bundled by accident. That gap is exactly what ContextGuard audits.</p>
       </details>
       <details>
         <summary>Are the "$ per month" numbers real?</summary>
-        <p>They're computed from your actual token counts under stated, conservative assumptions: Sonnet-class input pricing ($3/M tokens) at 50 requests/day. Both are settings, so point them at your real usage and model pricing and the estimates become your numbers. The token count is the part that doesn't move; the dollar figure sits on top of it. Prompt caching moves the dollars in both directions — lower when caches hit, higher when they miss and expire — but either way that configuration occupies your context window on every request.</p>
+        <p>They're computed from your actual token counts under stated, conservative assumptions: Sonnet-class input pricing ($3/M tokens) at 50 requests/day. Both are settings, so point them at your real usage and model pricing and the estimates become your numbers. Prompt caching can move the dollar figure, but those tokens still occupy context in any tool that loads them. When a repo has several tool configs, ContextGuard reports the combined footprint — and says plainly that each tool loads only its own instructions.</p>
       </details>
       <details>
         <summary>How does Pro licensing work?</summary>
-        <p>Pro checkout is not live yet, so there are no license keys to buy or activate today. The planned early-access license is one key for up to 5 machines. Once checkout opens, activate with <em>ContextGuard: Activate Pro License</em> from the Command Palette.</p>
+        <p>Buy an early-access license from the Pro checkout, then activate it with <em>ContextGuard: Activate Pro License</em> from the Command Palette. One key supports up to 5 machines.</p>
       </details>
       <details>
         <summary>What's the refund policy?</summary>
-        <p>No Pro purchases are available today. When Pro sales open, the intended policy is a full refund within 14 days of purchase.</p>
+        <p>Pro purchases are eligible for a full refund within 14 days of purchase.</p>
       </details>
       <details>
         <summary>Does it work offline?</summary>
