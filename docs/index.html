@@ -251,7 +251,7 @@
         <a class="btn btn-primary btn-lg" href="https://marketplace.visualstudio.com/items?itemName=bearinblue.contextguard">Install Free for VS Code</a>
         <a class="btn btn-ghost btn-lg" href="#pricing">See Pro pricing</a>
       </div>
-      <p class="trust"><strong>Entirely local.</strong> No telemetry, no data collection. Your code never leaves your machine during scans.</p>
+      <p class="trust"><strong>Entirely local.</strong> No telemetry, no analytics. Your code never leaves your machine. On the free tier, no network calls at all.</p>
     </div>
     <div class="term" aria-label="Example ContextGuard lint output">
       <div class="term-bar"><span></span><span></span><span></span></div>
@@ -448,7 +448,8 @@
     <div class="faq">
       <details>
         <summary>Does my code leave my machine?</summary>
-        <p>No. Every scan, lint, and bundle runs locally. ContextGuard does not send code or scan contents to a service. The only ContextGuard service call is activating, validating, or deactivating a Pro license through our licensing provider. Measure MCP Overhead launches workspace-configured MCP commands only after consent; those servers may make their own normal network calls. There is no telemetry or data collection, and this website has no analytics or cookies either.</p>
+        <p>No. Every scan, lint, and bundle runs locally. ContextGuard does not send code or scan contents to a service. On the free tier it makes no network calls at all. The only ContextGuard service call is activating, validating, or deactivating a Pro license through our licensing provider: activation sends your key plus an instance label (<code>VS Code</code> and the first 8 characters of VS Code's <code>machineId</code>) so we can enforce the per-key device limit, and that label is the only value ever derived from your machine ID. After that, ContextGuard re-validates on startup at most once every 7 days, sending the key and a server-issued instance ID instead, which identifies your installation to the licensing provider for as long as the license is active.</p>
+        <p>Our license server is a stateless proxy: it has no application database and does not intentionally write license keys, instance labels, or request bodies to logs. It runs on Cloudflare Workers. If Cloudflare Workers Logs are enabled, Cloudflare retains invocation logs containing request, response, and related metadata for 3 days on the free Workers plan or 7 days on paid plans. Lemon Squeezy stores the license key and activated instance record as needed to provide license validation and enforce the device limit, and may retain related information as described in its privacy policy. Measure MCP Overhead launches workspace-configured MCP commands only after consent; those servers may make their own normal network calls. There is no telemetry or analytics, and this website has no analytics or cookies either.</p>
       </details>
       <details>
         <summary>Which AI tools does it understand?</summary>
